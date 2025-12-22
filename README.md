@@ -1,84 +1,19 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
 # CrowdVision AI — Crowd Management System
 
 ## Overview
-The Crowd Management System is an AI‑driven, proactive safety solution designed to monitor crowded environments and prevent incidents before they occur. It ingests the physical area details of a venue and a live or recorded video feed, then continuously analyzes crowd movement and density to deliver detection, prediction, and prescriptive intelligence in real time.
+The Crowd Management System is an AI-driven, proactive safety solution designed to monitor crowded environments and prevent potential incidents before they occur. The system takes the physical area of the venue and a live or recorded video feed of the crowd as inputs.
 
-## Key Capabilities
-- **Real‑time Headcount:** Detects and estimates the number of people in the monitored area from live or uploaded video.
-- **Prescriptive Capacity Insight:** Computes the maximum safe occupancy for a given area based on environmental parameters and density.
-- **Prescriptive Space Planning:** Recommends optimal stage/space layout for safe meetings and movement.
-- **Congestion & Stampede Prediction:** Forecasts high‑risk congestion (e.g., stampede‑like situations) 5–7 minutes in advance and raises alerts.
-- **Missing Person Detection:** If a photo is provided, scans crowd footage to identify and locate the person in real time.
-- **Actionable Alerts:** Provides timely warnings and recommended mitigation steps for organizers.
+Using advanced computer vision and predictive analytics, the model continuously analyzes the video to detect and estimate the number of people present in real time. Based on the environmental parameters and crowd density, the system determines:
 
-## How It Works
-1. **Inputs:** Venue dimensions and either a live camera stream or recorded video.
-2. **Analysis:** Advanced computer vision + predictive analytics estimate headcount and density trends.
-3. **Prescriptive Output:** Safe capacity and layout recommendations for the venue.
-4. **Early Warning:** Predictive signals trigger alerts 5–7 minutes before potential incidents.
-5. **Search:** Optional missing‑person photo enables live scanning across frames.
+- **The maximum number of people the area can safely accommodate** (prescriptive insight)
+- **The optimal stage or space requirements for safe meeting and crowd movement** (prescriptive insight)
+- **The current headcount within the monitored area** (detection)
+
+The system further predicts crowd congestion and stampede-like situations, similar to incidents that have occurred in places such as Karur, and issues alerts 5–7 minutes in advance, allowing organizers to take timely preventive actions.
+
+Additionally, the system supports **missing person detection**. If a photograph of a missing individual is uploaded, the model scans the crowd footage to identify and locate the person in real time.
+
+By combining detection, prediction, and prescriptive intelligence, the system not only identifies risks but also recommends actionable solutions to prevent incidents, making it a comprehensive and proactive crowd safety management solution for large public events.
 
 ## Tech Stack
 - **Frontend:** React + Vite + TypeScript, Tailwind + shadcn‑ui
