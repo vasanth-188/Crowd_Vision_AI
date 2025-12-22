@@ -5,7 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { VideoAnalytics } from './components/VideoAnalytics';
 import { Login } from './components/Login';
 import { CrowdAnalysis, MissingPersonResult, AnalysisStatus, AnalysisMode, Alert } from './types';
-import { geminiService } from './services/geminiService';
+import { crowdAnalysisService } from './services/crowdAnalysisService';
 import { AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -64,7 +64,7 @@ const App: React.FC = () => {
     setLastFrame(base64);
     setStatus(AnalysisStatus.ANALYZING);
     try {
-      const result = await geminiService.analyzeCrowd(base64, venueArea);
+      const result = await crowdAnalysisService.analyzeCrowd(base64, venueArea);
       setAnalysis(result);
       setStatus(AnalysisStatus.IDLE);
 
@@ -99,7 +99,7 @@ const App: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const personBase64 = (reader.result as string).split(',')[1];
-        const result = await geminiService.findMissingPerson(lastFrame, personBase64);
+        const result = await crowdAnalysisService.findMissingPerson(lastFrame, personBase64);
         setMissingResult(result);
         setSearchingMissing(false);
         

@@ -136,14 +136,14 @@ The application is built with a modern, component-based architecture:
 
 ```
 ├── components/
-│   ├── Header.tsx           # Navigation and branding
-│   ├── Sidebar.tsx          # Control panel and settings
-│   ├── VideoAnalytics.tsx   # Core analysis interface
-│   └── Login.tsx            # Authentication (optional)
+│   ├── Header.tsx              # Navigation and branding
+│   ├── Sidebar.tsx             # Control panel and settings
+│   ├── VideoAnalytics.tsx      # Core analysis interface
+│   └── Login.tsx               # Authentication (optional)
 ├── services/
-│   └── geminiService.ts     # AI vision API integration
-├── types.ts                 # TypeScript type definitions
-└── App.tsx                  # Main application component
+│   └── crowdAnalysisService.ts # AI vision API integration
+├── types.ts                    # TypeScript type definitions
+└── App.tsx                     # Main application component
 ```
 
 ### Key Components

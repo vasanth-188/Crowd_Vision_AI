@@ -1,17 +1,40 @@
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { CrowdAnalysis, MissingPersonResult } from "../types";
 
-export class GeminiService {
+/**
+ * CrowdAnalysisService
+ * 
+ * Provides AI-powered crowd analysis capabilities including:
+ * - Real-time crowd headcount and density estimation
+ * - Safety capacity recommendations
+ * - Predictive alerts for dangerous crowd situations
+ * - Missing person identification and location tracking
+ * 
+ * Uses advanced computer vision and machine learning models
+ * for accurate and reliable crowd safety assessment.
+ */
+export class CrowdAnalysisService {
   private ai: GoogleGenAI;
 
+  /**
+   * Initialize the crowd analysis service with API credentials
+   * @throws {Error} If API key is not configured
+   */
   constructor() {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error('VITE_GEMINI_API_KEY is not set. Please add it to your .env file.');
+      throw new Error('API key is not configured. Please add it to your .env file.');
     }
     this.ai = new GoogleGenAI({ apiKey });
   }
 
+  /**
+   * Analyze crowd composition and safety metrics from a video frame
+   * 
+   * @param frameBase64 - Base64 encoded image frame
+   * @param venueArea - Total venue area in square meters
+   * @returns Detailed crowd analysis with safety metrics and recommendations
+   */
   async analyzeCrowd(
     frameBase64: string, 
     venueArea: number
@@ -58,6 +81,13 @@ export class GeminiService {
     return JSON.parse(text.trim()) as CrowdAnalysis;
   }
 
+  /**
+   * Detect and locate a missing person within a crowd
+   * 
+   * @param crowdFrameBase64 - Base64 encoded image of the crowd
+   * @param targetPersonBase64 - Base64 encoded reference image of the missing person
+   * @returns Detection results with confidence score and location information
+   */
   async findMissingPerson(
     crowdFrameBase64: string,
     targetPersonBase64: string
@@ -104,4 +134,8 @@ export class GeminiService {
   }
 }
 
-export const geminiService = new GeminiService();
+/**
+ * Singleton instance of the crowd analysis service
+ * Used throughout the application for all crowd analysis operations
+ */
+export const crowdAnalysisService = new CrowdAnalysisService();
