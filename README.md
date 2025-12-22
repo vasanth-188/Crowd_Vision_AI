@@ -1,7 +1,8 @@
 # CrowdGuard AI - Intelligent Crowd Management System
 
 <div align="center">
-<img width="1200" height="475" alt="CrowdGuard Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<h3>Enterprise-Grade Crowd Safety Management Platform</h3>
+<p>Real-time crowd analytics, predictive safety alerts, and missing person detection</p>
 </div>
 
 ## Overview
@@ -73,7 +74,7 @@ The system processes live or recorded video feeds along with venue parameters to
    
    Edit the `.env` file and add your API credentials:
    ```dotenv
-   VITE_GEMINI_API_KEY=your_api_key_here
+   VITE_VISION_API_KEY=your_api_key_here
    ```
 
 4. **Start the development server**
@@ -97,7 +98,7 @@ This creates an optimized production build in the `dist/` folder.
 
 ### Deploy to Hosting Platform
 
-1. **Configure Environment**: Set the `VITE_GEMINI_API_KEY` environment variable in your hosting platform's settings (Netlify, Vercel, AWS, etc.)
+1. **Configure Environment**: Set the `VITE_VISION_API_KEY` environment variable in your hosting platform's settings (Netlify, Vercel, AWS, etc.)
 
 2. **Deploy Build Artifacts**: Upload the contents of the `dist/` folder to your web hosting service
 
@@ -119,7 +120,7 @@ This creates an optimized production build in the `dist/` folder.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_GEMINI_API_KEY` | Yes | API key for AI vision analysis service |
+| `VITE_VISION_API_KEY` | Yes | API key for AI vision analysis service |
 
 ### Venue Configuration
 
@@ -163,7 +164,7 @@ The application is built with a modern, component-based architecture:
 | **Language** | TypeScript |
 | **Styling** | Tailwind CSS |
 | **Build Tool** | Vite 6 |
-| **AI/Vision API** | Google Generative AI (Gemini) |
+| **Computer Vision Engine** | Advanced AI Vision API |
 | **Package Manager** | npm |
 
 ---
@@ -220,9 +221,9 @@ interface MissingPersonResult {
 
 **Issue**: API key errors on startup
 ```
-VITE_GEMINI_API_KEY is not set. Please add it to your .env file.
+Vision API key is not configured. Please add VITE_VISION_API_KEY to your .env file.
 ```
-**Solution**: Ensure `.env` file exists with valid API credentials
+**Solution**: Ensure `.env` file exists with valid API key for the vision analysis service
 
 **Issue**: Tailwind CSS warnings in development
 **Solution**: These are non-critical build warnings and don't affect functionality

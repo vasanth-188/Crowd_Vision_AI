@@ -21,9 +21,9 @@ export class CrowdAnalysisService {
    * @throws {Error} If API key is not configured
    */
   constructor() {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = import.meta.env.VITE_VISION_API_KEY;
     if (!apiKey) {
-      throw new Error('API key is not configured. Please add it to your .env file.');
+      throw new Error('Vision API key is not configured. Please add VITE_VISION_API_KEY to your .env file.');
     }
     this.ai = new GoogleGenAI({ apiKey });
   }
@@ -40,7 +40,7 @@ export class CrowdAnalysisService {
     venueArea: number
   ): Promise<CrowdAnalysis> {
     const response: GenerateContentResponse = await this.ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'models/gemini-2.0-flash',
       contents: {
         parts: [
           {
@@ -93,7 +93,7 @@ export class CrowdAnalysisService {
     targetPersonBase64: string
   ): Promise<MissingPersonResult> {
     const response: GenerateContentResponse = await this.ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'models/gemini-2.0-flash',
       contents: {
         parts: [
           {
