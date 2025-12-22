@@ -22,8 +22,16 @@ export class CrowdAnalysisService {
    */
   constructor() {
     const apiKey = import.meta.env.VITE_VISION_API_KEY;
-    if (!apiKey) {
-      throw new Error('Vision API key is not configured. Please add VITE_VISION_API_KEY to your .env file.');
+    if (!apiKey || apiKey === 'your_api_key_here') {
+      throw new Error(
+        'Vision API key is not configured.\n\n' +
+        'Setup Instructions:\n' +
+        '1. Copy .env.example to .env (if not already done)\n' +
+        '2. Edit .env file and add your Vision API key\n' +
+        '3. Get your API key from: https://aistudio.google.com/apikey\n' +
+        '4. Restart the development server\n\n' +
+        'Current value in .env: ' + (apiKey ? 'placeholder (needs real key)' : 'not set')
+      );
     }
     this.ai = new GoogleGenAI({ apiKey });
   }
