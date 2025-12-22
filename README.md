@@ -1,76 +1,409 @@
-# CrowdVision AI — Crowd Management System
+# CrowdVision AI — Intelligent Crowd Management System
+
+> An AI-powered, privacy-first solution for real-time crowd monitoring, density analysis, and proactive safety management.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF.svg)](https://vitejs.dev/)
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [System Capabilities](#system-capabilities)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [Project Architecture](#project-architecture)
+- [Use Cases](#use-cases)
+- [Privacy & Security](#privacy--security)
+- [System Requirements](#system-requirements)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Overview
-The Crowd Management System is an AI-driven, proactive safety solution designed to monitor crowded environments and prevent potential incidents before they occur. The system takes the physical area of the venue and a live or recorded video feed of the crowd as inputs.
 
-Using advanced computer vision and predictive analytics, the model continuously analyzes the video to detect and estimate the number of people present in real time. Based on the environmental parameters and crowd density, the system determines:
+CrowdVision AI is an advanced, AI-driven crowd management system designed to monitor crowded environments and prevent potential incidents before they occur. The system analyzes live or recorded video feeds in real-time, providing actionable insights for event organizers, venue managers, and safety professionals.
 
-- **The maximum number of people the area can safely accommodate** (prescriptive insight)
-- **The optimal stage or space requirements for safe meeting and crowd movement** (prescriptive insight)
-- **The current headcount within the monitored area** (detection)
+### Problem Statement
 
-The system further predicts crowd congestion and stampede-like situations, similar to incidents that have occurred in places such as Karur, and issues alerts 5–7 minutes in advance, allowing organizers to take timely preventive actions.
+Crowd-related incidents at public gatherings pose significant safety risks. Traditional monitoring methods are reactive and often fail to prevent stampedes, overcrowding, and emergency situations. CrowdVision AI addresses this challenge through predictive analytics and prescriptive intelligence.
 
-Additionally, the system supports **missing person detection**. If a photograph of a missing individual is uploaded, the model scans the crowd footage to identify and locate the person in real time.
+### Solution
 
-By combining detection, prediction, and prescriptive intelligence, the system not only identifies risks but also recommends actionable solutions to prevent incidents, making it a comprehensive and proactive crowd safety management solution for large public events.
+By leveraging state-of-the-art computer vision and machine learning models running entirely in the browser, CrowdVision AI:
 
-## Tech Stack
-- **Frontend:** React + Vite + TypeScript, Tailwind + shadcn‑ui
-- **AI Inference:** Transformers.js (browser WASM with quantized models)
-- **Charts & Visualization:** Recharts, Canvas heatmaps
-- **State & Storage:** React Context, localStorage for analytics snapshots
+- **Detects** the current headcount within monitored areas in real-time
+- **Predicts** crowd congestion and potential stampede situations 5–7 minutes in advance
+- **Prescribes** optimal capacity limits and space layouts based on venue dimensions and crowd density
+- **Locates** missing individuals through facial recognition when provided with reference photos
 
-## Quick Start
+All processing happens locally on your device, ensuring complete privacy and offline capability.
+
+---
+
+## Key Features
+
+### 🎯 Real-Time Crowd Detection
+- Accurate headcount estimation from live camera feeds or uploaded videos
+- Support for both image and video inputs
+- Continuous monitoring with automatic density analysis
+
+### 📊 Predictive Analytics
+- Early warning system for potential crowd congestion
+- Stampede risk prediction with 5–7 minute advance alerts
+- Historical trend analysis and pattern recognition
+
+### 💡 Prescriptive Intelligence
+- Automated calculation of safe venue capacity based on physical area and density metrics
+- Optimal stage and space layout recommendations
+- Dynamic zone density analysis with color-coded risk indicators
+
+### 👤 Missing Person Search
+- Real-time facial recognition scanning across crowd footage
+- Upload reference photos to locate specific individuals
+- Batch processing for historical video analysis
+
+### 📈 Analytics Dashboard
+- Comprehensive analytics with weekly and hourly crowd trends
+- Interactive density heatmaps and zone visualizations
+- Export capabilities for reports and documentation
+
+### 🔒 Privacy-First Architecture
+- 100% client-side processing using WebAssembly (WASM)
+- No data transmission to external servers
+- Works completely offline after initial load
+- Local storage for analytics history with user-controlled data management
+
+---
+
+## System Capabilities
+
+### Detection Layer
+- **People Counting**: Real-time detection and tracking of individuals in crowded scenes
+- **Density Mapping**: Visual heatmaps showing crowd concentration areas
+- **Zone Analysis**: Automatic zone segmentation using k-means clustering
+
+### Prediction Layer
+- **Congestion Forecasting**: Predicts high-risk areas 5–7 minutes in advance
+- **Trend Analysis**: Identifies crowd movement patterns and bottlenecks
+- **Alert Generation**: Intelligent safety alerts with severity classification
+
+### Prescription Layer
+- **Capacity Planning**: Calculates maximum safe occupancy for given venue parameters
+- **Space Optimization**: Recommends optimal layouts for crowd flow management
+- **Risk Mitigation**: Provides actionable recommendations to prevent incidents
+
+---
+
+## Technology Stack
+
+### Frontend Framework
+- **React 18.3** — Modern UI library with hooks and concurrent features
+- **TypeScript 5.8** — Type-safe development environment
+- **Vite 5.4** — Next-generation build tool with lightning-fast HMR
+
+### UI & Styling
+- **Tailwind CSS 3.4** — Utility-first CSS framework
+- **shadcn/ui** — High-quality, accessible component library
+- **Framer Motion** — Production-ready animation library
+- **Lucide React** — Beautiful icon set
+
+### AI & Machine Learning
+- **Transformers.js (Hugging Face)** — Browser-based ML inference via WASM
+- **Quantized Models** — Optimized for performance (Q8 precision)
+- **Face Detection** — Real-time facial recognition capabilities
+
+### Data Visualization
+- **Recharts** — Composable charting library for React
+- **Canvas API** — Custom density heatmaps and annotations
+
+### State Management
+- **React Context** — Global state management
+- **React Router 6** — Client-side routing
+- **LocalStorage** — Persistent analytics storage
+
+### Development Tools
+- **ESLint 9** — Code quality and consistency
+- **PostCSS** — CSS transformations and autoprefixer
+- **SWC** — Rust-based JavaScript/TypeScript compiler
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** (v18 or higher) — [Download](https://nodejs.org/)
+- **npm** (v9 or higher) — Included with Node.js
+- **Modern browser** with WebAssembly support
+
+### Installation
 ```bash
+# Clone the repository
+git clone https://github.com/vasanth-188/Crowd_Vision_AI.git
+cd Crowd_Vision_AI
+
 # Install dependencies
 npm ci
 
-# Start dev server
+# Start development server
 npm run dev
+```
 
-# Build for production
+The application will be available at `http://localhost:8080`
+
+### Building for Production
+
+```bash
+# Create optimized production build
 npm run build
 
-# Preview production build
+# Preview production build locally
 npm run preview
 ```
 
-## Project Structure
-- `src/pages/Index.tsx` — Main detection interface (upload + live)
-- `src/components/LiveFeed.tsx` — Camera capture and live inference loop
-- `src/lib/crowdDetection.ts` — Detection pipeline and heatmap generation
-- `src/lib/zoneClustering.ts` — Auto‑detected dynamic zones via k‑means
-- `src/hooks/useAnalytics.tsx` — Analytics tracking (with `clearAnalytics()`)
-- `src/pages/Dashboard.tsx` — Analytics overview (real data)
-- `src/pages/History.tsx` — Recent analyses (view/download/delete, Clear All)
+The build output will be in the `dist/` directory.
 
-## Privacy & On‑Device Processing
-- Inference runs in the browser (WASM). Crowd data stays local unless you choose to export.
-- Use **Clear All** in History to wipe local analytics snapshots.
+---
 
-## Reset Repository History (optional)
-To remove all previous git history and start with a clean, single commit:
-```bash
-# WARNING: Destructive operation. Ensure you have backups.
-# Run from the repo root
+## Project Architecture
 
-# Create an orphan branch with a fresh initial commit
-git checkout --orphan clean-slate
-git add -A
-git commit -m "Initial clean commit"
+### Directory Structure
 
-# Replace main with the new branch locally
-git branch -M main
-
-# Force push to remote (update remote name/URL as needed)
-# This rewrites the remote history.
-git push -f origin main
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui base components
+│   ├── AlertPanel.tsx  # Safety alert notifications
+│   ├── DensityHeatmap.tsx
+│   ├── LiveFeed.tsx    # Camera capture & real-time detection
+│   └── ...
+├── pages/              # Application routes
+│   ├── Index.tsx       # Main detection interface
+│   ├── Dashboard.tsx   # Analytics overview
+│   ├── History.tsx     # Historical analyses
+│   ├── About.tsx       # Project information
+│   └── Auth.tsx        # Authentication
+├── lib/                # Core business logic
+│   ├── crowdDetection.ts    # ML inference pipeline
+│   ├── faceDetection.ts     # Facial recognition
+│   ├── zoneClustering.ts    # Dynamic zone detection
+│   ├── crowdAlerts.ts       # Alert generation logic
+│   └── videoProcessing.ts   # Video frame extraction
+├── hooks/              # Custom React hooks
+│   ├── useAnalytics.tsx     # Analytics tracking
+│   └── useAuth.tsx          # Authentication state
+└── main.tsx           # Application entry point
 ```
 
-## Deployment Notes
-- Remove any legacy deployment configs (e.g., `.vercel`, `netlify.toml`) if present.
-- Re‑create deployments from the clean build (`dist/`) after rewriting history.
+### Key Modules
+
+#### Detection Pipeline (`src/lib/crowdDetection.ts`)
+- Loads and initializes AI models (quantized for performance)
+- Processes images/video frames for person detection
+- Generates density heatmaps and zone classifications
+- Returns structured detection results with bounding boxes
+
+#### Zone Clustering (`src/lib/zoneClustering.ts`)
+- Implements k-means clustering algorithm
+- Automatically segments detected persons into spatial zones
+- Calculates zone-specific density metrics
+- Assigns risk levels (low, medium, high, critical)
+
+#### Analytics System (`src/hooks/useAnalytics.tsx`)
+- Tracks detection events with timestamps
+- Aggregates data by hour and day of week
+- Persists to localStorage with user control
+- Provides `clearAnalytics()` for data removal
+
+#### Live Feed (`src/components/LiveFeed.tsx`)
+- Manages webcam access via MediaStream API
+- Implements throttled detection loop (configurable interval)
+- Uses offscreen canvas for performance optimization
+- Displays real-time annotated video with bounding boxes
+
+---
+
+## Use Cases
+
+### 🎪 Event Management
+- Large-scale concerts, festivals, and sporting events
+- Real-time monitoring of entry/exit points and crowd flow
+- Capacity management to prevent overcrowding
+
+### 🏛️ Venue Operations
+- Shopping malls, airports, and transit stations
+- Occupancy tracking for regulatory compliance
+- Queue management and customer experience optimization
+
+### 🚨 Emergency Response
+- Predictive alerts for first responders and security teams
+- Rapid identification of high-risk areas
+- Missing person location during evacuations
+
+### 🎓 Educational Institutions
+- Campus safety monitoring during events
+- Auditorium and cafeteria capacity management
+- Emergency egress planning validation
+
+---
+
+## Privacy & Security
+
+### Data Protection Principles
+
+✅ **On-Device Processing** — All AI inference runs locally in your browser via WebAssembly  
+✅ **Zero Data Transmission** — No video or images sent to external servers  
+✅ **Offline Capability** — Works without internet after initial page load  
+✅ **User-Controlled Storage** — Analytics stored locally; clear anytime via History page  
+✅ **No Tracking** — No analytics, cookies, or third-party scripts
+
+### Data Management
+
+- **View Analytics**: Dashboard page shows aggregated historical data
+- **Export Data**: Download JSON snapshots of your analytics
+- **Clear Data**: Use "Clear All" button in History to wipe all stored analytics
+- **Browser Storage**: Data persists only in your browser's localStorage
+
+---
+
+## System Requirements
+
+### Minimum Requirements
+- **Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **RAM**: 4 GB available memory
+- **Processor**: Dual-core CPU (2.0 GHz or faster)
+- **Network**: Required for initial page load only
+
+### Recommended Specifications
+- **Browser**: Latest Chrome or Edge (best WebAssembly performance)
+- **RAM**: 8 GB or more
+- **Processor**: Quad-core CPU (2.5 GHz or faster)
+- **GPU**: Hardware acceleration enabled in browser
+
+### Camera Requirements (for Live Mode)
+- Webcam with minimum 720p resolution
+- Browser permissions granted for camera access
+- Adequate lighting for optimal detection accuracy
+
+---
+
+## Deployment
+
+### Static Hosting (Recommended)
+
+Deploy to platforms like Vercel, Netlify, or GitHub Pages:
+
+```bash
+# Build the project
+npm run build
+
+# Deploy the dist/ directory to your hosting provider
+```
+
+### Vercel
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+### Netlify
+
+```bash
+npm i -g netlify-cli
+netlify deploy --prod --dir=dist
+```
+
+### Docker (Optional)
+
+```dockerfile
+FROM node:18-alpine as build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+---
+
+## Contributing
+
+We welcome contributions from the community! Please follow these guidelines:
+
+### Development Workflow
+
+1. **Fork** the repository
+2. **Clone** your fork locally
+3. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+4. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+5. **Push** to the branch (`git push origin feature/amazing-feature`)
+6. **Open** a Pull Request
+
+### Code Standards
+
+- Follow TypeScript best practices
+- Maintain existing code style (use ESLint)
+- Write meaningful commit messages
+- Test thoroughly before submitting PR
+
+### Reporting Issues
+
+Open an issue on GitHub with:
+- Clear description of the problem
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser and OS information
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## Disclaimer
-This system assists organizers with proactive safety insights. Final decisions and on‑site protocols remain the responsibility of operators and authorities.
+
+CrowdVision AI is designed to assist event organizers and venue managers with proactive safety insights. The system provides recommendations based on AI analysis, but **final decisions and on-site safety protocols remain the sole responsibility of venue operators, security personnel, and relevant authorities**.
+
+This software is provided "as is" without warranty of any kind. The developers and contributors are not liable for any incidents, damages, or losses arising from the use of this system.
+
+---
+
+## Acknowledgments
+
+- **Hugging Face** — For Transformers.js and pre-trained models
+- **shadcn/ui** — For the excellent component library
+- **React Community** — For the robust ecosystem
+
+---
+
+## Contact & Support
+
+For questions, feature requests, or support:
+
+- **GitHub Issues**: [Report a bug](https://github.com/vasanth-188/Crowd_Vision_AI/issues)
+- **Repository**: [CrowdVision AI](https://github.com/vasanth-188/Crowd_Vision_AI)
+
+---
+
+<div align="center">
+
+**Built with ❤️ for safer public spaces**
+
+[⬆ Back to Top](#crowdvision-ai--intelligent-crowd-management-system)
+
+</div>
