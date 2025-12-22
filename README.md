@@ -1,284 +1,141 @@
-# CrowdGuard AI - Intelligent Crowd Management System
+# Welcome to your Lovable project
 
-<div align="center">
-<h3>Enterprise-Grade Crowd Safety Management Platform</h3>
-<p>Real-time crowd analytics, predictive safety alerts, and missing person detection</p>
-</div>
+## Project info
 
-## Overview
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-**CrowdGuard AI** is an advanced, AI-powered safety management platform designed to monitor crowded environments and prevent potential incidents before they occur. By combining real-time computer vision analysis with predictive analytics, CrowdGuard AI delivers a comprehensive solution for large-scale public event management and public venue safety.
+## How can I edit this code?
 
-### Core Capabilities
+There are several ways of editing your application.
 
-The system processes live or recorded video feeds along with venue parameters to deliver three key intelligence types:
+**Use Lovable**
 
-#### 1. **Detection Intelligence**
-- Real-time crowd headcount estimation using advanced computer vision
-- Continuous monitoring of crowd composition and movement patterns
-- Support for missing person identification and location tracking
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-#### 2. **Prescriptive Intelligence**
-- Optimal capacity recommendations based on venue dimensions and crowd characteristics
-- Stage and space allocation guidance for safe crowd movement and distribution
-- Evidence-based safety recommendations for event organizers
+Changes made via Lovable will be committed automatically to this repo.
 
-#### 3. **Predictive Intelligence**
-- Early warning system for potential stampedes and crowd congestion (5-7 minutes advance notice)
-- Crowd behavior forecasting based on movement analysis
-- Risk level assessment: Low, Moderate, High, or Critical
+**Use your preferred IDE**
 
-### Key Features
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-- **Proactive Risk Management**: Identifies hazardous situations before they develop, enabling preventive action
-- **Real-Time Analytics**: Instant crowd density and safety capacity analysis
-- **Missing Person Detection**: Advanced facial recognition and crowd scanning capabilities
-- **Actionable Insights**: Specific recommendations for event management and safety protocols
-- **Event-Ready**: Designed for large public events, festivals, concerts, and venue management
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### Use Cases
+Follow these steps:
 
-- Concert and festival crowd management
-- Emergency evacuation planning
-- Public venue safety monitoring
-- Event capacity optimization
-- Large gathering safety assessment
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
----
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-## Installation & Setup
+# Step 3: Install the necessary dependencies.
+npm i
 
-### Prerequisites
-
-- Node.js 16 or higher
-- npm or yarn package manager
-- API credentials for AI vision analysis service
-
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/Crowd_Gaurd_AI.git
-   cd Crowd_Gaurd_AI
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit the `.env` file and add your API credentials:
-   ```dotenv
-   VITE_VISION_API_KEY=your_api_key_here
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-   
-   The application will be available at `http://localhost:5173`
-
----
-
-## Production Deployment
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-This creates an optimized production build in the `dist/` folder.
-
-### Deploy to Hosting Platform
-
-1. **Configure Environment**: Set the `VITE_VISION_API_KEY` environment variable in your hosting platform's settings (Netlify, Vercel, AWS, etc.)
-
-2. **Deploy Build Artifacts**: Upload the contents of the `dist/` folder to your web hosting service
-
-3. **Verify Deployment**: Test the application with real crowd footage to ensure proper functionality
-
-### Supported Hosting Platforms
-- Netlify
-- Vercel
-- AWS (S3 + CloudFront)
-- GitHub Pages
-- Azure Static Web Apps
-- Any standard static file hosting service
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_VISION_API_KEY` | Yes | API key for AI vision analysis service |
-
-### Venue Configuration
-
-In the application interface, you will need to specify:
-- **Venue Area**: Total area in square meters
-- **Video Source**: Live stream, webcam, or video file upload
-- **Analysis Mode**: Real-time or manual batch processing
-
----
-
-## Architecture
-
-The application is built with a modern, component-based architecture:
-
-```
-├── components/
-│   ├── Header.tsx              # Navigation and branding
-│   ├── Sidebar.tsx             # Control panel and settings
-│   ├── VideoAnalytics.tsx      # Core analysis interface
-│   └── Login.tsx               # Authentication (optional)
-├── services/
-│   └── crowdAnalysisService.ts # AI vision API integration
-├── types.ts                    # TypeScript type definitions
-└── App.tsx                     # Main application component
-```
-
-### Key Components
-
-- **Video Analytics Module**: Processes video feeds and displays real-time crowd metrics
-- **Analytics Dashboard**: Visualizes headcount, density, risk levels, and recommendations
-- **Alert System**: Notifies operators of critical safety events
-- **Missing Person Module**: Scans crowds for identified individuals
-
----
-
-## Technologies & Stack
-
-| Category | Technology |
-|----------|-----------|
-| **Frontend Framework** | React 19 |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS |
-| **Build Tool** | Vite 6 |
-| **Computer Vision Engine** | Advanced AI Vision API |
-| **Package Manager** | npm |
-
----
-
-## API Reference
-
-### CrowdAnalysis Interface
-
-```typescript
-interface CrowdAnalysis {
-  headcount: number;              // Estimated number of people
-  density: number;                // People per square meter
-  maxCapacity: number;            // Recommended safe capacity
-  riskLevel: string;              // "Low" | "Moderate" | "High" | "Critical"
-  predictiveAlert?: string;       // Stampede/congestion prediction
-  recommendations: string[];      // Safety recommendations
-}
-```
-
-### MissingPersonResult Interface
-
-```typescript
-interface MissingPersonResult {
-  found: boolean;                 // Whether person was detected
-  confidence: number;             // Detection confidence (0-1)
-  locationDescription?: string;   // Where in crowd they were found
-  message: string;                // Human-readable result
-}
-```
-
----
-
-## Performance & Scalability
-
-- **Real-Time Processing**: Sub-second analysis on standard hardware
-- **Concurrent Monitoring**: Support for multiple simultaneous video feeds
-- **Scalable Architecture**: Cloud-ready design for enterprise deployment
-- **Optimized Video Processing**: Efficient frame extraction and analysis
-
----
-
-## Security Considerations
-
-- **API Key Protection**: Secure storage of credentials using environment variables
-- **No Data Retention**: Video frames processed but not permanently stored
-- **HTTPS Only**: Use TLS/SSL in production environments
-- **Authentication Ready**: Built for integration with OAuth/SSO systems
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: API key errors on startup
-```
-Vision API key is not configured. Please add VITE_VISION_API_KEY to your .env file.
-```
-**Solution**: Ensure `.env` file exists with valid API key for the vision analysis service
-
-**Issue**: Tailwind CSS warnings in development
-**Solution**: These are non-critical build warnings and don't affect functionality
-
-**Issue**: Video analysis takes too long
-**Solution**: Ensure adequate system resources; reduce video resolution if needed
-
----
-
-## Development & Contributing
-
-### Running Development Server
-```bash
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-### Building for Production
-```bash
-npm run build
-```
+**Edit a file directly in GitHub**
 
-### Preview Production Build
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with:
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+# CrowdVision AI — Crowd Management System
+
+## Overview
+The Crowd Management System is an AI‑driven, proactive safety solution designed to monitor crowded environments and prevent incidents before they occur. It ingests the physical area details of a venue and a live or recorded video feed, then continuously analyzes crowd movement and density to deliver detection, prediction, and prescriptive intelligence in real time.
+
+## Key Capabilities
+- **Real‑time Headcount:** Detects and estimates the number of people in the monitored area from live or uploaded video.
+- **Prescriptive Capacity Insight:** Computes the maximum safe occupancy for a given area based on environmental parameters and density.
+- **Prescriptive Space Planning:** Recommends optimal stage/space layout for safe meetings and movement.
+- **Congestion & Stampede Prediction:** Forecasts high‑risk congestion (e.g., stampede‑like situations) 5–7 minutes in advance and raises alerts.
+- **Missing Person Detection:** If a photo is provided, scans crowd footage to identify and locate the person in real time.
+- **Actionable Alerts:** Provides timely warnings and recommended mitigation steps for organizers.
+
+## How It Works
+1. **Inputs:** Venue dimensions and either a live camera stream or recorded video.
+2. **Analysis:** Advanced computer vision + predictive analytics estimate headcount and density trends.
+3. **Prescriptive Output:** Safe capacity and layout recommendations for the venue.
+4. **Early Warning:** Predictive signals trigger alerts 5–7 minutes before potential incidents.
+5. **Search:** Optional missing‑person photo enables live scanning across frames.
+
+## Tech Stack
+- **Frontend:** React + Vite + TypeScript, Tailwind + shadcn‑ui
+- **AI Inference:** Transformers.js (browser WASM with quantized models)
+- **Charts & Visualization:** Recharts, Canvas heatmaps
+- **State & Storage:** React Context, localStorage for analytics snapshots
+
+## Quick Start
 ```bash
+# Install dependencies
+npm ci
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
 npm run preview
 ```
 
-### Code Quality
-The project follows TypeScript strict mode and ESLint standards for code consistency.
+## Project Structure
+- `src/pages/Index.tsx` — Main detection interface (upload + live)
+- `src/components/LiveFeed.tsx` — Camera capture and live inference loop
+- `src/lib/crowdDetection.ts` — Detection pipeline and heatmap generation
+- `src/lib/zoneClustering.ts` — Auto‑detected dynamic zones via k‑means
+- `src/hooks/useAnalytics.tsx` — Analytics tracking (with `clearAnalytics()`)
+- `src/pages/Dashboard.tsx` — Analytics overview (real data)
+- `src/pages/History.tsx` — Recent analyses (view/download/delete, Clear All)
 
----
+## Privacy & On‑Device Processing
+- Inference runs in the browser (WASM). Crowd data stays local unless you choose to export.
+- Use **Clear All** in History to wipe local analytics snapshots.
 
-## License
+## Reset Repository History (optional)
+To remove all previous git history and start with a clean, single commit:
+```bash
+# WARNING: Destructive operation. Ensure you have backups.
+# Run from the repo root
 
-This project is licensed under the MIT License - see LICENSE file for details.
+# Create an orphan branch with a fresh initial commit
+git checkout --orphan clean-slate
+git add -A
+git commit -m "Initial clean commit"
 
----
+# Replace main with the new branch locally
+git branch -M main
 
-## Support & Documentation
+# Force push to remote (update remote name/URL as needed)
+# This rewrites the remote history.
+git push -f origin main
+```
 
-For detailed documentation, API guides, and implementation examples, please refer to:
-- [Project Wiki](https://github.com/yourusername/Crowd_Gaurd_AI/wiki)
-- [Issue Tracker](https://github.com/yourusername/Crowd_Gaurd_AI/issues)
-- [Discussions](https://github.com/yourusername/Crowd_Gaurd_AI/discussions)
+## Deployment Notes
+- Remove any legacy deployment configs (e.g., `.vercel`, `netlify.toml`) if present.
+- Re‑create deployments from the clean build (`dist/`) after rewriting history.
 
----
-
-## Roadmap
-
-- [ ] Mobile app support (React Native)
-- [ ] Multi-camera feed coordination
-- [ ] Historical data analytics and reporting
-- [ ] Integration with emergency response systems
-- [ ] Advanced crowd behavior prediction models
-- [ ] RTMP/HLS streaming support
-
----
-
-**CrowdGuard AI** - Making Crowds Safe, One Event at a Time
+## Disclaimer
+This system assists organizers with proactive safety insights. Final decisions and on‑site protocols remain the responsibility of operators and authorities.
