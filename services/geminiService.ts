@@ -5,8 +5,12 @@ export class GeminiService {
   private ai: GoogleGenAI;
 
   constructor() {
-    // Fixed: Use named parameter for apiKey and rely exclusively on process.env.API_KEY
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Use Vite environment variable
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('VITE_GEMINI_API_KEY is not set in environment variables');
+    }
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async analyzeCrowd(
