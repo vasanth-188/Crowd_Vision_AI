@@ -157,7 +157,7 @@ export default function About() {
                 </a>
               </Button>
               <Button variant="outline" size="lg" className="btn-press" asChild>
-                <a href="https://github.com/sidharthworks/Crowd_Detection" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/sidharthworks/Crowd_Vision" target="_blank" rel="noopener noreferrer">
                   <Github className="mr-2 h-5 w-5" />
                   View on GitHub
                   <ExternalLink className="ml-2 h-4 w-4" />
