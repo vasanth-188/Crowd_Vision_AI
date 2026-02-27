@@ -127,9 +127,9 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
 
       // Pass canvas with live mode flag for optimized resolution
       const startTime = Date.now();
-      const result = await detectPeople(procCanvas, undefined, { threshold: 0.25, isLive: true });
+      const result = await detectPeople(procCanvas, undefined, { threshold: 0.45, isLive: true });
       const processingTime = (Date.now() - startTime) / 1000;
-      
+
       setCurrentDetections(result.detections);
       setLastProcessTime(Date.now());
       onDetectionUpdate(result.detections, result.imageWidth, result.imageHeight);
@@ -141,12 +141,12 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
         result.imageHeight,
         5
       );
-      
+
       const zoneData: Record<string, number> = {};
       dynamicZones.forEach(zone => {
         zoneData[zone.name] = zone.detectionCount;
       });
-      
+
       recordDetection(
         result.peopleCount,
         processingTime,

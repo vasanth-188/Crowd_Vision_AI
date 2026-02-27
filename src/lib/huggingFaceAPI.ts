@@ -25,7 +25,7 @@ export interface HFPersonMatchResult {
 }
 
 // Configuration
-const HF_API_KEY = process.env.REACT_APP_HF_API_KEY || '';
+const HF_API_KEY = import.meta.env.VITE_HF_API_KEY || '';
 const HF_API_URL = 'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-VL-7B-Instruct';
 
 interface RateLimitConfig {
