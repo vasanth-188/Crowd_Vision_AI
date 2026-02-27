@@ -1,5 +1,6 @@
 import { pipeline, env } from '@huggingface/transformers';
 
+
 // Configure transformers.js
 env.allowLocalModels = false;
 env.useBrowserCache = true;
@@ -30,7 +31,7 @@ export interface DetectionResult {
   };
 }
 
-export type DetectionModel = 'detr-resnet-50' | 'yolov8' | 'auto';
+export type DetectionModel = 'detr-resnet-50' | 'yolov8' | 'yolov11' | 'auto';
 
 export interface DetectionConfig {
   model?: DetectionModel;
@@ -71,12 +72,15 @@ export async function loadDetector(
     let modelName: string;
     
     switch (modelToLoad) {
+      case 'yolov11':
+        modelName = 'Xenova/yolov11n'; // YOLOv11 Nano - fastest, best for real-time
+        break;
       case 'yolov8':
-        modelName = 'Xenova/yolov8n';
+        modelName = 'Xenova/yolov8n'; // YOLOv8 Nano
         break;
       case 'detr-resnet-50':
       default:
-        modelName = 'Xenova/detr-resnet-50';
+        modelName = 'Xenova/detr-resnet-50'; // DETR - high accuracy
         break;
     }
 
