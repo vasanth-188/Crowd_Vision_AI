@@ -127,12 +127,17 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
 
       // Pass canvas with live mode flag for optimized resolution
       const startTime = Date.now();
-      const result = await detectPeople(procCanvas, undefined, { threshold: 0.45, isLive: true });
+      const result = await detectPeople(procCanvas, undefined, {
+        threshold: 0.35,
+        minConfidence: 0.8,
+        model: 'yolov11',
+        isLive: true,
+      });
       const processingTime = (Date.now() - startTime) / 1000;
 
       setCurrentDetections(result.detections);
       setLastProcessTime(Date.now());
-      onDetectionUpdate(result.detections, result.imageWidth, result.imageHeight);
+      onDetectionUpdate(result.allDetections ?? result.detections, result.imageWidth, result.imageHeight);
 
       // Calculate zone data using auto-detection
       const dynamicZones = autoDetectZones(

@@ -81,21 +81,27 @@ const Index = () => {
       setCrowdImageElement(img);
       setImageSrc(URL.createObjectURL(isVideo ? await createImageBlob(img) : file));
 
+      const useDenseCrowd = img.naturalWidth * img.naturalHeight >= 1920 * 1080;
+
       // Run detection with optimized settings for dense crowds
       const detectionResult = await detectPeople(img, (p, s) => {
         setProgress(p);
         setStatus(s);
       }, {
-        denseCrowd: true,          // High resolution for better detection
-        threshold: 0.3,            // Lower threshold to catch more people
+        denseCrowd: useDenseCrowd, // High resolution for large images
+        threshold: 0.35,           // Higher recall for complete counting
+        minConfidence: 0.8,        // Min 80% confidence for displayed accuracy
+        model: 'yolov11',          // Faster model for <5s target
         isLive: false              // Better accuracy for static analysis
       });
 
       setResult(detectionResult);
 
+      const allDetections = detectionResult.allDetections ?? detectionResult.detections;
+
       // Generate heatmap
       const heatmap = generateHeatmapData(
-        detectionResult.detections,
+        allDetections,
         detectionResult.imageWidth,
         detectionResult.imageHeight
       );
@@ -120,7 +126,7 @@ const Index = () => {
 
       // Calculate zone data using auto-detection
       const dynamicZones = autoDetectZones(
-        detectionResult.detections,
+        allDetections,
         detectionResult.imageWidth,
         detectionResult.imageHeight,
         5
@@ -281,12 +287,14 @@ const Index = () => {
   const handleDownload = useCallback(() => {
     if (!result) return;
 
+    const allDetections = result.allDetections ?? result.detections;
+
     const data = {
       timestamp: new Date().toISOString(),
       peopleCount: result.peopleCount,
       processingTime: `${(result.processingTime / 1000).toFixed(2)}s`,
       imageSize: `${result.imageWidth}x${result.imageHeight}`,
-      detections: result.detections.map((d, i) => ({
+      detections: allDetections.map((d, i) => ({
         id: i + 1,
         confidence: `${Math.round(d.score * 100)}%`,
         position: { x: Math.round(d.box.xmin), y: Math.round(d.box.ymin) },

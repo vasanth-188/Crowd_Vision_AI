@@ -60,7 +60,7 @@ export function MatchResults({ matches, onMatchClick, selectedIndex }: MatchResu
               key={index}
               onClick={() => onMatchClick?.(match)}
               className={`w-full flex items-center gap-4 p-3 rounded-lg border transition-all text-left ${
-                selectedIndex === index
+                selectedIndex === match.personIndex
                   ? 'border-primary bg-primary/10'
                   : 'border-border hover:border-primary/50 hover:bg-muted/50'
               }`}

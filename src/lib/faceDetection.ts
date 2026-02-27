@@ -278,53 +278,68 @@ export async function findMatchingPerson(
     return [];
   }
 
-  // Limit to top 20 most confident detections for speed
+  // Limit to top 15 most confident detections for speed
   const crowdDetections = allDetections
     .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+    .slice(0, 15);
 
   onProgress?.(70, 'Comparing against crowd...');
 
-  // Extract embeddings and compare
+  // Extract embeddings and compare (batched for speed)
   const matches: FaceMatch[] = [];
+  const batchSize = 4;
 
-  for (let i = 0; i < crowdDetections.length; i++) {
-    const detection = crowdDetections[i];
+  for (let i = 0; i < crowdDetections.length; i += batchSize) {
+    const batch = crowdDetections.slice(i, i + batchSize);
 
     onProgress?.(
       70 + Math.round((i / crowdDetections.length) * 20),
-      `Analyzing person ${i + 1}/${crowdDetections.length}...`
+      `Analyzing people ${i + 1}-${Math.min(i + batch.length, crowdDetections.length)} of ${crowdDetections.length}...`
     );
 
-    try {
-      const embedding = await extractPersonEmbedding(crowdImage, detection.box);
-      const similarity = cosineSimilarity(referenceEmbedding, embedding);
+    const batchResults = await Promise.all(
+      batch.map(async (detection, idx) => {
+        try {
+          const embedding = await extractPersonEmbedding(crowdImage, detection.box);
+          const similarity = cosineSimilarity(referenceEmbedding, embedding);
+          return { detection, similarity, personIndex: i + idx };
+        } catch (error) {
+          console.warn(`Failed to process person ${i + idx}:`, error);
+          return null;
+        }
+      })
+    );
 
-      if (similarity >= similarityThreshold) {
+    batchResults.forEach(result => {
+      if (result && result.similarity >= similarityThreshold) {
         matches.push({
-          detection,
-          similarity,
-          personIndex: i,
+          detection: result.detection,
+          similarity: result.similarity,
+          personIndex: result.personIndex,
           qwenMatch: false,
         });
       }
-    } catch (error) {
-      console.warn(`Failed to process person ${i}:`, error);
+    });
+
+    if (matches.some(m => m.similarity >= 0.8)) {
+      break; // Early exit on strong match
     }
   }
 
   // Sort by similarity (highest first)
   matches.sort((a, b) => b.similarity - a.similarity);
 
-  onProgress?.(95, 'Finalizing results...');
+  onProgress?.(90, 'Using AI for enhanced matching...');
 
-  // Skip slow Qwen API call for faster results
-  // Can be enabled later for higher accuracy if needed
-  // const enhancedMatches = await enhanceWithQwenAnalysis(...)
+  // Use Qwen2.5-VL for enhanced verification only when strong matches exist
+  const topSimilarity = matches[0]?.similarity ?? 0;
+  const enhancedMatches = matches.length > 0 && topSimilarity >= 0.6
+    ? await enhanceWithQwenAnalysis(referenceImage, crowdImage, matches, onProgress)
+    : matches;
 
   onProgress?.(100, 'Search complete!');
 
-  return matches;
+  return enhancedMatches;
 }
 
 /**

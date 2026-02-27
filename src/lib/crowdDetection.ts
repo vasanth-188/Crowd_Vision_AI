@@ -20,6 +20,7 @@ export interface Detection {
 
 export interface DetectionResult {
   detections: Detection[];
+  allDetections?: Detection[];
   peopleCount: number;
   processingTime: number;
   imageWidth: number;
@@ -36,6 +37,7 @@ export type DetectionModel = 'detr-resnet-50' | 'yolov8' | 'yolov11' | 'auto';
 export interface DetectionConfig {
   model?: DetectionModel;
   threshold?: number;
+  minConfidence?: number; // Filtered display confidence
   isLive?: boolean;
   enableTracking?: boolean;
   optimizeForSpeed?: boolean;
@@ -240,7 +242,7 @@ export async function detectPeople(
 
   onProgress?.(90, 'Processing results...');
 
-  let peopleDetections: Detection[] = results
+  const allDetections: Detection[] = results
     .filter((r: any) => r.label === 'person')
     .map((r: any) => ({
       label: r.label,
@@ -254,19 +256,26 @@ export async function detectPeople(
       },
     }));
 
+  let peopleDetections = allDetections;
+
+  if (options?.minConfidence !== undefined) {
+    peopleDetections = allDetections.filter(d => d.score >= options.minConfidence);
+  }
+
   if (options?.enableTracking) {
     peopleDetections = assignTrackingIds(peopleDetections, true);
   }
 
   const processingTime = performance.now() - startTime;
   const imageArea = srcWidth * srcHeight;
-  const crowdDensity = calculateCrowdDensity(peopleDetections.length, imageArea);
+  const crowdDensity = calculateCrowdDensity(allDetections.length, imageArea);
 
   onProgress?.(100, 'Complete!');
 
   return {
     detections: peopleDetections,
-    peopleCount: peopleDetections.length,
+    allDetections,
+    peopleCount: allDetections.length,
     processingTime,
     imageWidth: srcWidth,
     imageHeight: srcHeight,
