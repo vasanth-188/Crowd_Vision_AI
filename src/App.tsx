@@ -43,7 +43,14 @@ function AppShell() {
       <div className="flex-1">
         <PageTransition>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
