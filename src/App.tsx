@@ -16,6 +16,7 @@ import History from "./pages/History";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import UserStorageViewer from "./components/UserStorageViewer";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ function AppShell() {
             />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/dev/storage" element={<UserStorageViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </PageTransition>

@@ -18,6 +18,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Simple local storage based auth for demo purposes
 // In production, this should be replaced with a proper auth provider like Supabase
+
+// Storage Keys for Browser's localStorage:
+// 1. 'crowdvision_auth' - Stores current logged-in user (email, id, createdAt)
+// 2. 'crowdvision_users' - Stores all registered users with hashed passwords
+//
+// Data Storage Location: Browser localStorage (F12 > Application > Local Storage > http://localhost:8080)
+// Password Security: SHA-256 hash (not plain text)
+//
+// Example stored data structure:
+// crowdvision_users: [
+//   {
+//     id: "uuid-string",
+//     email: "user@example.com", 
+//     password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // SHA-256 hash
+//     createdAt: "2026-02-27T10:30:00.000Z"
+//   }
+// ]
 const AUTH_STORAGE_KEY = 'crowdvision_auth';
 const USERS_STORAGE_KEY = 'crowdvision_users';
 
