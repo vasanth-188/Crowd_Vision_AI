@@ -39,6 +39,7 @@ export interface DetectionConfig {
   isLive?: boolean;
   enableTracking?: boolean;
   optimizeForSpeed?: boolean;
+  denseCrowd?: boolean; // For high-density crowd scenes
 }
 
 let detector: any = null;
@@ -200,6 +201,8 @@ export async function detectPeople(
   let maxDim: number;
   if (options?.optimizeForSpeed) {
     maxDim = 320;
+  } else if (options?.denseCrowd) {
+    maxDim = 1280; // Ultra-high res for dense crowds
   } else if (options?.isLive) {
     maxDim = 480;
   } else {
@@ -227,7 +230,8 @@ export async function detectPeople(
 
   onProgress?.(70, 'Running detection...');
 
-  const threshold = options?.threshold ?? (options?.isLive ? 0.4 : 0.5);
+  // Lower threshold for dense crowds (0.3 default for crowd detection)
+  const threshold = options?.threshold ?? (options?.isLive ? 0.3 : 0.35);
   
   const results = await detector(imageData, {
     threshold,
