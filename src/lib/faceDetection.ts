@@ -143,9 +143,9 @@ export async function extractPersonEmbedding(
     await loadFeatureExtractor();
   }
 
-  // Crop the person region
-  const croppedCanvas = cropImageToCanvas(image, box);
-  const imageData = croppedCanvas.toDataURL('image/jpeg', 0.9);
+  // Crop the person region - smaller size for speed
+  const croppedCanvas = cropImageToCanvas(image, box, 128); // Reduced from 224
+  const imageData = croppedCanvas.toDataURL('image/jpeg', 0.7); // Reduced quality for speed
 
   // Extract features using CLIP
   const result = await featureExtractor(imageData);
@@ -183,8 +183,8 @@ export async function detectPersonsInImage(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
 
-  // Resize for processing
-  const maxDim = 1024;
+  // Resize for processing - reduced for speed
+  const maxDim = 640; // Reduced from 1024 for faster processing
   let width = imageElement.naturalWidth;
   let height = imageElement.naturalHeight;
 
@@ -271,12 +271,18 @@ export async function findMatchingPerson(
 
   onProgress?.(50, 'Detecting people in crowd image...');
 
-  // Detect all people in crowd image
-  const crowdDetections = await detectPersonsInImage(crowdImage);
+  // Detect all people in crowd image with lower threshold for speed
+  const allDetections = await detectPersonsInImage(crowdImage, undefined, 0.4);
 
-  if (crowdDetections.length === 0) {
+  if (allDetections.length === 0) {
     return [];
   }
+
+  // Limit to top 20 most confident detections for speed
+  const crowdDetections = allDetections
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20);
+
   onProgress?.(70, 'Comparing against crowd...');
 
   // Extract embeddings and compare
@@ -310,19 +316,15 @@ export async function findMatchingPerson(
   // Sort by similarity (highest first)
   matches.sort((a, b) => b.similarity - a.similarity);
 
-  onProgress?.(90, 'Using AI for enhanced matching...');
+  onProgress?.(95, 'Finalizing results...');
 
-  // Enhance with Qwen2.5-VL for better accuracy
-  const enhancedMatches = await enhanceWithQwenAnalysis(
-    referenceImage,
-    crowdImage,
-    matches,
-    onProgress
-  );
+  // Skip slow Qwen API call for faster results
+  // Can be enabled later for higher accuracy if needed
+  // const enhancedMatches = await enhanceWithQwenAnalysis(...)
 
   onProgress?.(100, 'Search complete!');
 
-  return enhancedMatches;
+  return matches;
 }
 
 /**
