@@ -81,10 +81,14 @@ const Index = () => {
       setCrowdImageElement(img);
       setImageSrc(URL.createObjectURL(isVideo ? await createImageBlob(img) : file));
 
-      // Run detection
+      // Run detection with optimized settings for dense crowds
       const detectionResult = await detectPeople(img, (p, s) => {
         setProgress(p);
         setStatus(s);
+      }, {
+        denseCrowd: true,          // High resolution for better detection
+        threshold: 0.3,            // Lower threshold to catch more people
+        isLive: false              // Better accuracy for static analysis
       });
 
       setResult(detectionResult);

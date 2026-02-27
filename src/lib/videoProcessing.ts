@@ -30,6 +30,7 @@ export async function extractVideoFrame(
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+      // Use higher quality JPEG for better detection
       canvas.toBlob((blob) => {
         if (!blob) {
           reject(new Error('Failed to extract frame'));
@@ -43,7 +44,7 @@ export async function extractVideoFrame(
         };
         img.onerror = reject;
         img.src = URL.createObjectURL(blob);
-      }, 'image/jpeg', 0.9);
+      }, 'image/jpeg', 0.95); // Increased quality from 0.9 to 0.95
 
       URL.revokeObjectURL(video.src);
     };
