@@ -11,7 +11,9 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
@@ -19,6 +21,25 @@ export default function Auth() {
   const location = useLocation();
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  const validatePassword = (pwd: string): { valid: boolean; message?: string } => {
+    if (pwd.length < 8) {
+      return { valid: false, message: 'Password must be at least 8 characters' };
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return { valid: false, message: 'Password must contain at least one lowercase letter' };
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return { valid: false, message: 'Password must contain at least one uppercase letter' };
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return { valid: false, message: 'Password must contain at least one number' };
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      return { valid: false, message: 'Password must contain at least one special character' };
+    }
+    return { valid: true };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +55,19 @@ export default function Auth() {
       toast.error('Enter a valid email address');
       return;
     }
-    if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters');
-      toast.error('Password must be at least 6 characters');
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      setErrorMsg(passwordValidation.message!);
+      toast.error(passwordValidation.message!);
+      return;
+    }
+
+    // Check password confirmation for signup
+    if (!isLogin && password !== confirmPassword) {
+      setErrorMsg('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
@@ -127,7 +158,37 @@ export default function Auth() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {!isLogin && (
+                  <p className="text-xs text-muted-foreground">
+                    Must include uppercase, lowercase, number, and special character
+                  </p>
+                )}
               </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 pr-10 h-12"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <Button
