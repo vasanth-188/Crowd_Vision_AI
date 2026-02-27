@@ -13,6 +13,8 @@ export interface Detection {
     xmax: number;
     ymax: number;
   };
+  trackingId?: string;
+  confidence?: number;
 }
 
 export interface DetectionResult {
@@ -21,20 +23,40 @@ export interface DetectionResult {
   processingTime: number;
   imageWidth: number;
   imageHeight: number;
+  metadata?: {
+    modelUsed: string;
+    fps?: number;
+    crowdDensity?: 'low' | 'medium' | 'high' | 'very-high';
+  };
+}
+
+export type DetectionModel = 'detr-resnet-50' | 'yolov8' | 'auto';
+
+export interface DetectionConfig {
+  model?: DetectionModel;
+  threshold?: number;
+  isLive?: boolean;
+  enableTracking?: boolean;
+  optimizeForSpeed?: boolean;
 }
 
 let detector: any = null;
 let isLoading = false;
+let currentModel: DetectionModel = 'detr-resnet-50';
+let trackingMap = new Map<string, Detection>();
 
 export async function loadDetector(
-  onProgress?: (progress: number, status: string) => void
+  onProgress?: (progress: number, status: string) => void,
+  config?: DetectionConfig
 ): Promise<void> {
-  if (detector) {
+  const modelToLoad = config?.model || 'detr-resnet-50';
+  
+  if (detector && currentModel === modelToLoad) {
     onProgress?.(100, 'Model ready');
     return;
   }
+  
   if (isLoading) {
-    // Wait for existing load
     while (isLoading) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -46,20 +68,37 @@ export async function loadDetector(
   onProgress?.(0, 'Initializing model...');
 
   try {
-    detector = await pipeline('object-detection', 'Xenova/detr-resnet-50', {
-      // Explicit dtype to prevent default-warnings on wasm
-      dtype: 'q8',
+    let modelName: string;
+    
+    switch (modelToLoad) {
+      case 'yolov8':
+        modelName = 'Xenova/yolov8n';
+        break;
+      case 'detr-resnet-50':
+      default:
+        modelName = 'Xenova/detr-resnet-50';
+        break;
+    }
+
+    onProgress?.(10, `Loading ${modelToLoad} model...`);
+
+    detector = await pipeline('object-detection', modelName, {
+      dtype: config?.optimizeForSpeed ? 'q4' : 'q8',
       progress_callback: (data: any) => {
         if (data.status === 'progress' && data.progress) {
-          onProgress?.(Math.round(data.progress), `Loading ${data.file || 'model'}...`);
+          const progress = Math.round(data.progress);
+          onProgress?.(10 + (progress * 0.8), `Loading ${data.file || 'model'}...`);
         } else if (data.status === 'done') {
-          onProgress?.(100, 'Model loaded!');
+          onProgress?.(95, 'Model loaded!');
         }
       },
     });
-    onProgress?.(100, 'Ready!');
+    
+    currentModel = modelToLoad;
+    onProgress?.(100, `${modelToLoad} ready!`);
   } catch (error) {
     console.error('Failed to load detector:', error);
+    detector = null;
     throw error;
   } finally {
     isLoading = false;
@@ -68,16 +107,74 @@ export async function loadDetector(
 
 type ImageSource = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
 
+function calculateIoU(box1: Detection['box'], box2: Detection['box']): number {
+  const x1 = Math.max(box1.xmin, box2.xmin);
+  const y1 = Math.max(box1.ymin, box2.ymin);
+  const x2 = Math.min(box1.xmax, box2.xmax);
+  const y2 = Math.min(box1.ymax, box2.ymax);
+
+  const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  const area1 = (box1.xmax - box1.xmin) * (box1.ymax - box1.ymin);
+  const area2 = (box2.xmax - box2.xmin) * (box2.ymax - box2.ymin);
+  const union = area1 + area2 - intersection;
+
+  return union > 0 ? intersection / union : 0;
+}
+
+function assignTrackingIds(detections: Detection[], enableTracking: boolean): Detection[] {
+  if (!enableTracking) return detections;
+
+  const trackedDetections: Detection[] = [];
+  const usedIds = new Set<string>();
+
+  for (const detection of detections) {
+    let bestMatch: { id: string; iou: number } | null = null;
+
+    for (const [id, prevDetection] of trackingMap.entries()) {
+      const iou = calculateIoU(detection.box, prevDetection.box);
+      if (iou > 0.3 && (!bestMatch || iou > bestMatch.iou)) {
+        bestMatch = { id, iou };
+      }
+    }
+
+    if (bestMatch && !usedIds.has(bestMatch.id)) {
+      detection.trackingId = bestMatch.id;
+      usedIds.add(bestMatch.id);
+    } else {
+      detection.trackingId = `person_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    trackedDetections.push(detection);
+  }
+
+  trackingMap.clear();
+  for (const detection of trackedDetections) {
+    if (detection.trackingId) {
+      trackingMap.set(detection.trackingId, detection);
+    }
+  }
+
+  return trackedDetections;
+}
+
+function calculateCrowdDensity(peopleCount: number, imageArea: number): 'low' | 'medium' | 'high' | 'very-high' {
+  const density = peopleCount / (imageArea / 1000000);
+  
+  if (density < 5) return 'low';
+  if (density < 15) return 'medium';
+  if (density < 30) return 'high';
+  return 'very-high';
+}
+
 export async function detectPeople(
   imageSource: ImageSource,
   onProgress?: (progress: number, status: string) => void,
-  options?: { threshold?: number; isLive?: boolean }
+  options?: DetectionConfig
 ): Promise<DetectionResult> {
   const startTime = performance.now();
 
-  // Ensure detector is loaded
-  if (!detector) {
-    await loadDetector(onProgress);
+  if (!detector || (options?.model && currentModel !== options.model)) {
+    await loadDetector(onProgress, options);
   }
 
   onProgress?.(50, 'Analyzing image...');
@@ -95,8 +192,16 @@ export async function detectPeople(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
 
-  // Resize for processing: live mode uses 480px (faster), static mode uses 1024px (more accurate)
-  const maxDim = options?.isLive ? 480 : 1024;
+  // Dynamic resolution based on mode and optimization
+  let maxDim: number;
+  if (options?.optimizeForSpeed) {
+    maxDim = 320;
+  } else if (options?.isLive) {
+    maxDim = 480;
+  } else {
+    maxDim = 1024;
+  }
+  
   let width = srcWidth;
   let height = srcHeight;
 
@@ -114,25 +219,25 @@ export async function detectPeople(
   canvas.height = height;
   ctx.drawImage(imageSource as CanvasImageSource, 0, 0, width, height);
 
-  // Get image as base64
-  const imageData = canvas.toDataURL('image/jpeg', 0.9);
+  const imageData = canvas.toDataURL('image/jpeg', options?.optimizeForSpeed ? 0.7 : 0.9);
 
   onProgress?.(70, 'Running detection...');
 
-  // Run detection
+  const threshold = options?.threshold ?? (options?.isLive ? 0.4 : 0.5);
+  
   const results = await detector(imageData, {
-    threshold: options?.threshold ?? 0.5,
+    threshold,
     percentage: true,
   });
 
   onProgress?.(90, 'Processing results...');
 
-  // Filter for people only
-  const peopleDetections: Detection[] = results
+  let peopleDetections: Detection[] = results
     .filter((r: any) => r.label === 'person')
     .map((r: any) => ({
       label: r.label,
       score: r.score,
+      confidence: r.score,
       box: {
         xmin: r.box.xmin * srcWidth,
         ymin: r.box.ymin * srcHeight,
@@ -141,7 +246,13 @@ export async function detectPeople(
       },
     }));
 
+  if (options?.enableTracking) {
+    peopleDetections = assignTrackingIds(peopleDetections, true);
+  }
+
   const processingTime = performance.now() - startTime;
+  const imageArea = srcWidth * srcHeight;
+  const crowdDensity = calculateCrowdDensity(peopleDetections.length, imageArea);
 
   onProgress?.(100, 'Complete!');
 
@@ -151,6 +262,11 @@ export async function detectPeople(
     processingTime,
     imageWidth: srcWidth,
     imageHeight: srcHeight,
+    metadata: {
+      modelUsed: currentModel,
+      fps: options?.isLive ? Math.round(1000 / processingTime) : undefined,
+      crowdDensity,
+    },
   };
 }
 
@@ -171,21 +287,56 @@ export function generateHeatmapData(
     const col = Math.floor(centerX / gridSize);
     const row = Math.floor(centerY / gridSize);
 
-    // Add to center cell and nearby cells with falloff
-    for (let dy = -2; dy <= 2; dy++) {
-      for (let dx = -2; dx <= 2; dx++) {
+    const radius = 3;
+    
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
         const r = row + dy;
         const c = col + dx;
         if (r >= 0 && r < rows && c >= 0 && c < cols) {
           const distance = Math.sqrt(dx * dx + dy * dy);
-          const weight = Math.max(0, 1 - distance / 3);
-          grid[r][c] += weight;
+          const sigma = radius / 2;
+          const weight = Math.exp(-(distance * distance) / (2 * sigma * sigma));
+          grid[r][c] += weight * (detection.confidence || detection.score);
         }
       }
     }
   }
 
   return grid;
+}
+
+export function detectHotspots(
+  heatmapData: number[][],
+  threshold: number = 2
+): Array<{ row: number; col: number; density: number }> {
+  const hotspots: Array<{ row: number; col: number; density: number }> = [];
+  
+  for (let r = 0; r < heatmapData.length; r++) {
+    for (let c = 0; c < heatmapData[r].length; c++) {
+      if (heatmapData[r][c] >= threshold) {
+        hotspots.push({ row: r, col: c, density: heatmapData[r][c] });
+      }
+    }
+  }
+  
+  return hotspots.sort((a, b) => b.density - a.density);
+}
+
+export function resetTracking(): void {
+  trackingMap.clear();
+}
+
+export function getDetectorInfo(): {
+  isLoaded: boolean;
+  currentModel: DetectionModel;
+  trackedObjects: number;
+} {
+  return {
+    isLoaded: detector !== null,
+    currentModel,
+    trackedObjects: trackingMap.size,
+  };
 }
 
 export function loadImage(file: File): Promise<HTMLImageElement> {
