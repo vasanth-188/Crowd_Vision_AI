@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Users, Clock, Target, TrendingUp, Download, RefreshCw, Eye, MapPin, Grid3X3, Upload, Video, Search, Bell, Ruler } from 'lucide-react';
 import { UploadZone } from '@/components/UploadZone';
 import { StatCard } from '@/components/StatCard';
@@ -16,14 +16,16 @@ import { autoDetectZones } from '@/lib/zoneClustering';
 import { HeadcountDisplay } from '@/components/HeadcountDisplay';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { detectPeople, loadImage, generateHeatmapData, DetectionResult, Detection } from '@/lib/crowdDetection';
+import { loadImage, generateHeatmapData, DetectionResult, Detection } from '@/lib/crowdDetection';
 import { findMatchingPerson, loadImage as loadFaceImage, FaceMatch } from '@/lib/faceDetection';
 import { CrowdAlert, analyzeAndGenerateAlerts, generateSnapshotFromDetections, clearHistory } from '@/lib/crowdAlerts';
 import { extractVideoFrame, getVideoDuration } from '@/lib/videoProcessing';
+import { getDetectionProvider } from '@/lib/detectionProviderFactory';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 
 const Index = () => {
+  const detectionProvider = useMemo(() => getDetectionProvider(), []);
   const { recordDetection } = useAnalytics();
   const [mode, setMode] = useState<'upload' | 'live'>('upload');
   const [isLiveActive, setIsLiveActive] = useState(false);
@@ -81,17 +83,18 @@ const Index = () => {
       setCrowdImageElement(img);
       setImageSrc(URL.createObjectURL(isVideo ? await createImageBlob(img) : file));
 
-      const useDenseCrowd = img.naturalWidth * img.naturalHeight >= 1920 * 1080;
+      // Always use dense crowd mode for uploads — enables tiled multi-scale detection
+      const useDenseCrowd = true;
 
       // Run detection with optimized settings for dense crowds
-      const detectionResult = await detectPeople(img, (p, s) => {
+      const detectionResult = await detectionProvider.detect(img, (p, s) => {
         setProgress(p);
         setStatus(s);
       }, {
-        denseCrowd: useDenseCrowd, // High resolution for large images
-        threshold: 0.35,           // Higher recall for complete counting
-        minConfidence: 0.8,        // Min 80% confidence for displayed accuracy
-        model: 'yolov11',          // Faster model for <5s target
+        denseCrowd: useDenseCrowd, // Tiled detection for all uploaded images
+        threshold: 0.5,
+        minConfidence: 0.5,        // Show boxes for detections ≥ 50% confidence
+        enableTracking: false,
         isLive: false              // Better accuracy for static analysis
       });
 
@@ -316,9 +319,11 @@ const Index = () => {
     toast.success('Results downloaded!');
   }, [result]);
 
-  const avgConfidence = result
+  const displayedDetections = result?.allDetections ?? result?.detections ?? [];
+
+  const avgConfidence = displayedDetections.length
     ? Math.round(
-        (result.detections.reduce((sum, d) => sum + d.score, 0) / result.detections.length) * 100
+        (displayedDetections.reduce((sum, d) => sum + d.score, 0) / displayedDetections.length) * 100
       ) || 0
     : 0;
 
@@ -565,7 +570,7 @@ const Index = () => {
                       <div className="aspect-video">
                         <AnnotatedImage
                           imageSrc={imageSrc!}
-                          detections={result.detections}
+                          detections={displayedDetections}
                           highlightedDetection={highlightedDetection}
                           showBoxes
                           showLabels
@@ -611,7 +616,7 @@ const Index = () => {
                   </TabsContent>
 
                   <TabsContent value="table" className="mt-4">
-                    <DetectionTable detections={result.detections} />
+                    <DetectionTable detections={displayedDetections} />
                   </TabsContent>
                 </Tabs>
               </div>

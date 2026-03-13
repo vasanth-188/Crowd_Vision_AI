@@ -35,7 +35,7 @@ export interface DetectionResult {
 export type DetectionModel = 'detr-resnet-50' | 'yolov8' | 'yolov11' | 'auto';
 
 export interface DetectionConfig {
-  model?: DetectionModel;
+  model?: DetectionModel | string;
   threshold?: number;
   minConfidence?: number; // Filtered display confidence
   isLive?: boolean;
@@ -76,10 +76,11 @@ export async function loadDetector(
     
     switch (modelToLoad) {
       case 'yolov11':
-        modelName = 'Xenova/yolov11n'; // YOLOv11 Nano - fastest, best for real-time
-        break;
       case 'yolov8':
-        modelName = 'Xenova/yolov8n'; // YOLOv8 Nano
+        // Use publicly available YOLOS models (Xenova/yolov8n/yolov11n do not exist publicly)
+        modelName = config?.optimizeForSpeed
+          ? 'Xenova/yolos-tiny'   // fastest
+          : 'Xenova/yolos-small'; // better accuracy
         break;
       case 'detr-resnet-50':
       default:
@@ -173,6 +174,91 @@ function calculateCrowdDensity(peopleCount: number, imageArea: number): 'low' | 
   return 'very-high';
 }
 
+// Non-maximum suppression — removes duplicate/overlapping boxes
+type RawDetection = { label: string; score: number; box: { xmin: number; ymin: number; xmax: number; ymax: number } };
+
+function applyNMS(detections: RawDetection[], iouThreshold = 0.45): RawDetection[] {
+  const sorted = [...detections].sort((a, b) => b.score - a.score);
+  const keep: RawDetection[] = [];
+  for (const det of sorted) {
+    const suppressed = keep.some(k => calculateIoU(det.box, k.box) > iouThreshold);
+    if (!suppressed) keep.push(det);
+  }
+  return keep;
+}
+
+// Tiled detection: split canvas into overlapping tiles + run whole-image pass,
+// returns all person detections in CANVAS pixel coordinates before NMS.
+async function runDetectionTiled(
+  canvas: HTMLCanvasElement,
+  threshold: number,
+  tileRows = 2,
+  tileCols = 2
+): Promise<RawDetection[]> {
+  const W = canvas.width;
+  const H = canvas.height;
+  const overlap = 0.25; // 25% overlap between tiles
+  const stepW = Math.floor(W / tileCols);
+  const stepH = Math.floor(H / tileRows);
+  const tileW = Math.min(Math.floor(stepW * (1 + overlap)), W);
+  const tileH = Math.min(Math.floor(stepH * (1 + overlap)), H);
+
+  const rawResults: RawDetection[] = [];
+  const tileCanvas = document.createElement('canvas');
+  const tileCtx = tileCanvas.getContext('2d')!;
+
+  for (let row = 0; row < tileRows; row++) {
+    for (let col = 0; col < tileCols; col++) {
+      const sx = col * stepW;
+      const sy = row * stepH;
+      const sw = Math.min(tileW, W - sx);
+      const sh = Math.min(tileH, H - sy);
+
+      tileCanvas.width = sw;
+      tileCanvas.height = sh;
+      tileCtx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      const tileData = tileCanvas.toDataURL('image/jpeg', 0.88);
+      const results = await detector(tileData, { threshold, percentage: true });
+
+      for (const r of results) {
+        if (r.label === 'person') {
+          rawResults.push({
+            label: r.label,
+            score: r.score,
+            box: {
+              xmin: sx + r.box.xmin * sw,
+              ymin: sy + r.box.ymin * sh,
+              xmax: sx + r.box.xmax * sw,
+              ymax: sy + r.box.ymax * sh,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Whole-image pass to catch people that span tile boundaries
+  const fullData = canvas.toDataURL('image/jpeg', 0.88);
+  const fullResults = await detector(fullData, { threshold, percentage: true });
+  for (const r of fullResults) {
+    if (r.label === 'person') {
+      rawResults.push({
+        label: r.label,
+        score: r.score,
+        box: {
+          xmin: r.box.xmin * W,
+          ymin: r.box.ymin * H,
+          xmax: r.box.xmax * W,
+          ymax: r.box.ymax * H,
+        },
+      });
+    }
+  }
+
+  return applyNMS(rawResults, 0.4);
+}
+
 export async function detectPeople(
   imageSource: ImageSource,
   onProgress?: (progress: number, status: string) => void,
@@ -232,29 +318,52 @@ export async function detectPeople(
 
   onProgress?.(70, 'Running detection...');
 
-  // Lower threshold for dense crowds (0.3 default for crowd detection)
-  const threshold = options?.threshold ?? (options?.isLive ? 0.3 : 0.35);
-  
-  const results = await detector(imageData, {
-    threshold,
-    percentage: true,
-  });
+  // Dense crowd: lower threshold + tiled multi-scale detection
+  const isDense = options?.denseCrowd;
+  const threshold = options?.threshold ?? (isDense ? 0.18 : options?.isLive ? 0.3 : 0.35);
+
+  // Scale factors to map canvas-pixel coordinates → original image pixel coordinates
+  const scaleX = srcWidth / width;
+  const scaleY = srcHeight / height;
+
+  let rawPersonDetections: RawDetection[];
+
+  if (isDense) {
+    // 3×3 tiled pass for very dense crowds, 2×2 otherwise
+    const tiles = (options?.model === 'yolov11' || options?.model === 'yolov8') ? 3 : 2;
+    onProgress?.(72, `Running tiled detection (${tiles}×${tiles} grid)...`);
+    rawPersonDetections = await runDetectionTiled(canvas, threshold, tiles, tiles);
+  } else {
+    const results = await detector(imageData, { threshold, percentage: true });
+    rawPersonDetections = (results as any[])
+      .filter((r: any) => r.label === 'person')
+      .map((r: any) => ({
+        label: r.label,
+        score: r.score,
+        box: {
+          xmin: r.box.xmin * width,
+          ymin: r.box.ymin * height,
+          xmax: r.box.xmax * width,
+          ymax: r.box.ymax * height,
+        },
+      }));
+    rawPersonDetections = applyNMS(rawPersonDetections, 0.5);
+  }
 
   onProgress?.(90, 'Processing results...');
 
-  const allDetections: Detection[] = results
-    .filter((r: any) => r.label === 'person')
-    .map((r: any) => ({
-      label: r.label,
-      score: r.score,
-      confidence: r.score,
-      box: {
-        xmin: r.box.xmin * srcWidth,
-        ymin: r.box.ymin * srcHeight,
-        xmax: r.box.xmax * srcWidth,
-        ymax: r.box.ymax * srcHeight,
-      },
-    }));
+  // Convert canvas pixel coords → original image pixel coords
+  const allDetections: Detection[] = rawPersonDetections.map((r) => ({
+    label: r.label,
+    score: r.score,
+    confidence: r.score,
+    box: {
+      xmin: r.box.xmin * scaleX,
+      ymin: r.box.ymin * scaleY,
+      xmax: r.box.xmax * scaleX,
+      ymax: r.box.ymax * scaleY,
+    },
+  }));
 
   let peopleDetections = allDetections;
 

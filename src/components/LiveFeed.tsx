@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Video, VideoOff, Play, Pause, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Detection, detectPeople, loadDetector } from '@/lib/crowdDetection';
+import { Detection } from '@/lib/crowdDetection';
+import { getDetectionProvider } from '@/lib/detectionProviderFactory';
 import { autoDetectZones } from '@/lib/zoneClustering';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ interface LiveFeedProps {
 }
 
 export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProps) {
+  const detectionProvider = useMemo(() => getDetectionProvider(), []);
   const { recordDetection } = useAnalytics();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,14 +33,14 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
 
   // Load model on mount
   useEffect(() => {
-    loadDetector((progress, status) => {
+    detectionProvider.initialize((progress, status) => {
       setLoadingProgress(progress);
       if (progress === 100) setModelLoaded(true);
     }).catch((err) => {
       console.error('Failed to load model:', err);
       setError('Failed to load AI model');
     });
-  }, []);
+  }, [detectionProvider]);
 
   const startCamera = useCallback(async () => {
     try {
@@ -127,10 +129,10 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
 
       // Pass canvas with live mode flag for optimized resolution
       const startTime = Date.now();
-      const result = await detectPeople(procCanvas, undefined, {
-        threshold: 0.35,
-        minConfidence: 0.8,
-        model: 'yolov11',
+      const result = await detectionProvider.detect(procCanvas, undefined, {
+        threshold: 0.4,
+        minConfidence: 0.4,
+        model: 'crowdhuman-trial/1',
         isLive: true,
       });
       const processingTime = (Date.now() - startTime) / 1000;
@@ -163,7 +165,7 @@ export function LiveFeed({ onDetectionUpdate, isActive, onToggle }: LiveFeedProp
     } finally {
       setIsProcessing(false);
     }
-  }, [isProcessing, isPaused, modelLoaded, onDetectionUpdate, recordDetection]);
+  }, [isProcessing, isPaused, modelLoaded, onDetectionUpdate, recordDetection, detectionProvider]);
 
   // Start detection loop when camera is active
   useEffect(() => {

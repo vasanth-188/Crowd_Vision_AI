@@ -149,21 +149,39 @@ export class BackendDetectionProvider implements DetectionProvider {
     onProgress?.(20, 'Preparing image for backend detection...');
     const normalized = normalizeImageSource(imageSource, 1600);
     const imageBase64 = normalized.canvas.toDataURL('image/jpeg', 0.95);
+    const requestedModel = options?.model ?? this.model;
 
     onProgress?.(50, 'Running crowd detection...');
     const response = await this.runRequest({
       imageBase64,
-      threshold: options?.threshold ?? 0.12,
+      threshold: options?.threshold ?? 0.5,
       maxDetections: options?.denseCrowd ? 3000 : 1500,
+      overlap: 50,
       preferRecall: true,
-      ...(this.model ? { model: this.model } : {}),
+      ...(requestedModel ? { model: requestedModel } : {}),
       cameraId: options?.isLive ? 'live-feed' : 'upload-analysis',
       enableTracking: options?.enableTracking ?? true,
     });
 
     onProgress?.(90, 'Processing backend results...');
 
-    const detections = normalizeBackendDetections(response.detections);
+    let detections = normalizeBackendDetections(response.detections);
+    if (
+      normalized.canvas.width !== normalized.sourceWidth ||
+      normalized.canvas.height !== normalized.sourceHeight
+    ) {
+      const scaleX = normalized.sourceWidth / normalized.canvas.width;
+      const scaleY = normalized.sourceHeight / normalized.canvas.height;
+      detections = detections.map((d) => ({
+        ...d,
+        box: {
+          xmin: d.box.xmin * scaleX,
+          ymin: d.box.ymin * scaleY,
+          xmax: d.box.xmax * scaleX,
+          ymax: d.box.ymax * scaleY,
+        },
+      }));
+    }
     const processingTime =
       response.processingTimeMs !== undefined
         ? response.processingTimeMs
@@ -179,7 +197,7 @@ export class BackendDetectionProvider implements DetectionProvider {
       imageWidth: normalized.sourceWidth,
       imageHeight: normalized.sourceHeight,
       metadata: {
-        modelUsed: response.modelUsed ?? this.model ?? 'backend-default',
+        modelUsed: response.modelUsed ?? requestedModel ?? 'backend-default',
       },
     };
   }
@@ -294,9 +312,11 @@ export class HybridDetectionProvider implements DetectionProvider {
   }
 }
 
+const PERSON_LABELS = new Set(['person', 'people', 'body', 'human', 'crowdhuman']);
+
 function normalizeBackendDetections(detections: BackendApiDetection[]): DetectionResult['detections'] {
   return detections
-    .filter((d) => d.label === 'person')
+    .filter((d) => PERSON_LABELS.has(d.label.toLowerCase()))
     .map((d) => ({
       label: d.label,
       score: d.score,

@@ -5,6 +5,13 @@ import binascii
 import os
 import tempfile
 import time
+
+# Load .env from the backend directory (parent of this file's directory)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+except ImportError:
+    pass
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any
@@ -66,6 +73,7 @@ class ZoneDefinition(BaseModel):
 class DetectRequest(BaseModel):
     imageBase64: str
     threshold: float = Field(default=0.25, ge=0.01, le=0.95)
+    overlap: int = Field(default=50, ge=0, le=100)
     maxDetections: int = Field(default=1500, ge=1, le=10000)
     model: str | None = None
     cameraId: str = "default"
@@ -273,8 +281,8 @@ def parse_roboflow_predictions(
             or "unknown"
         ).lower()
         
-        # Accept person, people, crowdhuman, and human detections
-        if label not in ["person", "people", "crowdhuman", "human"]:
+        # crowdhuman-trial emits class "body" for full person boxes.
+        if label not in ["person", "people", "crowdhuman", "human", "body"]:
             continue
 
         center_x = float(prediction.get("x", 0))
@@ -304,6 +312,7 @@ def get_person_boxes(
     image: np.ndarray,
     model_name: str,
     confidence: float,
+    overlap: int,
     max_detections: int,
 ) -> list[DetectionItem]:
     """
@@ -340,7 +349,7 @@ def get_person_boxes(
         
         # Run prediction (confidence uses a 0-100 scale)
         confidence_scaled = int(confidence * 100)
-        result = model.predict(temp_path, confidence=confidence_scaled, overlap=30).json()
+        result = model.predict(temp_path, confidence=confidence_scaled, overlap=overlap).json()
         
         print(f"[DEBUG] Detector: model={model_name}, predictions={len(result.get('predictions', []))}")
         
@@ -485,6 +494,7 @@ def detect(payload: DetectRequest) -> DetectResponse:
         image=image,
         model_name=model_name,
         confidence=payload.threshold,
+        overlap=payload.overlap,
         max_detections=payload.maxDetections,
     )
 
